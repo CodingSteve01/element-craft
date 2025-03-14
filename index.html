@@ -45,7 +45,7 @@
         .new-discovery {
             animation: pulse 2s infinite;
         }
-        
+
         .modal-content {
             max-width: 80vw;
             max-height: 80vh;
@@ -3186,7 +3186,7 @@
 				}
 			]);
 
-			// Missions - EXPANDED
+			// Missions
 			const missions = ref([
 				{
 					id: 'mission1',
@@ -3202,7 +3202,14 @@
 					reward: translate({de: 'Freischaltung des Bunsenbrenners', en: 'Unlocks the Bunsen Burner'}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 1
+					unlockLevel: 1,
+					onComplete: () => {
+						// Make sure bunsen burner is available in equipment
+						const bunsenBurner = availableEquipment.value.find(e => e.id === 'bunsen_burner');
+						if (bunsenBurner) {
+							bunsenBurner.disabled = false;
+						}
+					}
 				},
 				{
 					id: 'mission2',
@@ -3219,7 +3226,14 @@
 					reward: translate({de: 'Freischaltung der Elektrizität', en: 'Unlocks Electricity'}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 2
+					unlockLevel: 2,
+					onComplete: () => {
+						// Make sure electricity is available in equipment
+						const electricityEquipment = availableEquipment.value.find(e => e.id === 'electricity');
+						if (electricityEquipment) {
+							electricityEquipment.disabled = false;
+						}
+					}
 				},
 				{
 					id: 'mission3',
@@ -3236,7 +3250,14 @@
 					reward: translate({de: 'Freischaltung des UV-Lichts', en: 'Unlocks UV Light'}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 3
+					unlockLevel: 3,
+					onComplete: () => {
+						// Make sure UV light is available in equipment
+						const uvLightEquipment = availableEquipment.value.find(e => e.id === 'uv_light');
+						if (uvLightEquipment) {
+							uvLightEquipment.disabled = false;
+						}
+					}
 				},
 				{
 					id: 'mission4',
@@ -3256,7 +3277,20 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 4
+					unlockLevel: 4,
+					onComplete: () => {
+						// Unlock advanced metals
+						advancedElements.value
+							.filter(e => ['Cu', 'Ag', 'Au'].includes(e.id))
+							.forEach(metal => {
+								if (!discoveredItems.value.some(i => i.id === metal.id)) {
+									discoveredItems.value.push({
+										...metal,
+										category: 'element'
+									});
+								}
+							});
+					}
 				},
 				{
 					id: 'mission5',
@@ -3272,7 +3306,14 @@
 					reward: translate({de: 'Freischaltung des Katalysators', en: 'Unlocks Catalyst'}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 5
+					unlockLevel: 5,
+					onComplete: () => {
+						// Make sure catalyst is available in equipment
+						const catalystEquipment = availableEquipment.value.find(e => e.id === 'catalyst');
+						if (catalystEquipment) {
+							catalystEquipment.disabled = false;
+						}
+					}
 				},
 				// NEW MISSIONS
 				{
@@ -3292,7 +3333,14 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 6
+					unlockLevel: 6,
+					onComplete: () => {
+						// Make sure distillation apparatus is available in equipment
+						const distillationEquipment = availableEquipment.value.find(e => e.id === 'distillation');
+						if (distillationEquipment) {
+							distillationEquipment.disabled = false;
+						}
+					}
 				},
 				{
 					id: 'mission7',
@@ -3311,7 +3359,19 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 7
+					unlockLevel: 7,
+					onComplete: () => {
+						// This mission could unlock specialized equipment or capabilities
+						// For now, this is a placeholder that could be expanded
+						addNotification(
+							translate({de: 'Neue Fähigkeiten', en: 'New Capabilities'}),
+							translate({
+								de: 'Du kannst nun fortgeschrittene fotochemische Reaktionen durchführen!',
+								en: 'You can now perform advanced photochemical reactions!'
+							}),
+							'info'
+						);
+					}
 				},
 				{
 					id: 'mission8',
@@ -3330,7 +3390,19 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 8
+					unlockLevel: 8,
+					onComplete: () => {
+						// This mission could unlock new organic recipes
+						// For now, this is a placeholder that could be expanded
+						addNotification(
+							translate({de: 'Organische Meisterschaft', en: 'Organic Mastery'}),
+							translate({
+								de: 'Du hast die Kunst der organischen Synthese gemeistert!',
+								en: 'You have mastered the art of organic synthesis!'
+							}),
+							'info'
+						);
+					}
 				},
 				{
 					id: 'mission9',
@@ -3349,11 +3421,22 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 9
+					unlockLevel: 9,
+					onComplete: () => {
+						// Could unlock advanced industrial capabilities
+						addNotification(
+							translate({de: 'Industrielle Revolution', en: 'Industrial Revolution'}),
+							translate({
+								de: 'Du kannst nun fortgeschrittene industrielle Prozesse durchführen!',
+								en: 'You can now perform advanced industrial processes!'
+							}),
+							'info'
+						);
+					}
 				},
 				{
 					id: 'mission10',
-					title: translate({de: 'Materielien der Zukunft', en: 'Materials of the Future'}),
+					title: translate({de: 'Materialien der Zukunft', en: 'Materials of the Future'}),
 					description: translate({
 						de: 'Erforsche moderne Materialien und Legierungen.',
 						en: 'Research modern materials and alloys.'
@@ -3365,7 +3448,22 @@
 					reward: translate({de: 'Meister der Chemie Auszeichnung', en: 'Master of Chemistry Achievement'}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 10
+					unlockLevel: 10,
+					onComplete: () => {
+						// Award final achievement
+						const masterAchievement = achievements.value.find(a => a.id === 'achievement10');
+						if (masterAchievement && !masterAchievement.unlocked) {
+							masterAchievement.unlocked = true;
+							addNotification(
+								translate({de: 'Meisterschaft erreicht!', en: 'Mastery Achieved!'}),
+								translate({
+									de: 'Du bist ein wahrer Meister der Chemie geworden!',
+									en: 'You have become a true master of chemistry!'
+								}),
+								'achievement'
+							);
+						}
+					}
 				},
 				{
 					id: 'mission11',
@@ -3385,7 +3483,17 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 11
+					unlockLevel: 11,
+					onComplete: () => {
+						addNotification(
+							translate({de: 'Säure-Meister', en: 'Acid Master'}),
+							translate({
+								de: 'Du beherrschst nun die Herstellung und Anwendung starker Säuren!',
+								en: 'You now master the production and application of strong acids!'
+							}),
+							'info'
+						);
+					}
 				},
 				{
 					id: 'mission12',
@@ -3405,7 +3513,17 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 12
+					unlockLevel: 12,
+					onComplete: () => {
+						addNotification(
+							translate({de: 'Industrieexperte', en: 'Industry Expert'}),
+							translate({
+								de: 'Du beherrschst nun die komplexesten industriellen Prozesse!',
+								en: 'You now master the most complex industrial processes!'
+							}),
+							'info'
+						);
+					}
 				},
 				{
 					id: 'mission13',
@@ -3425,7 +3543,17 @@
 					}),
 					completed: false,
 					progress: 0,
-					unlockLevel: 13
+					unlockLevel: 13,
+					onComplete: () => {
+						addNotification(
+							translate({de: 'Organischer Chemiker', en: 'Organic Chemist'}),
+							translate({
+								de: 'Du hast die Fähigkeiten eines organischen Chemikers erlangt!',
+								en: 'You have gained the skills of an organic chemist!'
+							}),
+							'info'
+						);
+					}
 				}
 			]);
 
@@ -3610,64 +3738,23 @@
 			function checkMissions() {
 				missions.value.forEach(mission => {
 					if (!mission.completed) {
+						// Calculate progress based on current discoveries
 						const progress = calculateMissionProgress(mission);
+
+						// Update mission progress
+						mission.progress = mission.requirements.filter(req => {
+							if (req.type === 'discover') {
+								return discoveredItems.value.some(item => item.id === req.id);
+							}
+							return false;
+						}).length;
 
 						if (progress === 100) {
 							mission.completed = true;
 
-							// Apply rewards
-							if (mission.id === 'mission2') {
-								// Make sure electricity is available in equipment
-								if (!availableEquipment.value.some(e => e.id === 'electricity')) {
-									// Find electricity in equipment and enable it
-									const electricityEquipment = availableEquipment.value.find(e => e.id === 'electricity');
-									if (electricityEquipment) {
-										// It's already in the list but might be disabled
-										electricityEquipment.disabled = false;
-									}
-								}
-							} else if (mission.id === 'mission3') {
-								// Make sure UV light is available in equipment
-								if (!availableEquipment.value.some(e => e.id === 'uv_light')) {
-									// Find UV light in equipment and enable it
-									const uvLightEquipment = availableEquipment.value.find(e => e.id === 'uv_light');
-									if (uvLightEquipment) {
-										// It's already in the list but might be disabled
-										uvLightEquipment.disabled = false;
-									}
-								}
-							} else if (mission.id === 'mission4') {
-								// Unlock advanced metals
-								advancedElements.value
-									.filter(e => ['Cu', 'Ag', 'Au'].includes(e.id))
-									.forEach(metal => {
-										if (!discoveredItems.value.some(i => i.id === metal.id)) {
-											discoveredItems.value.push({
-												...metal,
-												category: 'element'
-											});
-										}
-									});
-							} else if (mission.id === 'mission5') {
-								// Make sure catalyst is available in equipment
-								if (!availableEquipment.value.some(e => e.id === 'catalyst')) {
-									// Find catalyst in equipment and enable it
-									const catalystEquipment = availableEquipment.value.find(e => e.id === 'catalyst');
-									if (catalystEquipment) {
-										// It's already in the list but might be disabled
-										catalystEquipment.disabled = false;
-									}
-								}
-							} else if (mission.id === 'mission6') {
-								// Make sure distillation apparatus is available in equipment
-								if (!availableEquipment.value.some(e => e.id === 'distillation')) {
-									// Find distillation in equipment and enable it
-									const distillationEquipment = availableEquipment.value.find(e => e.id === 'distillation');
-									if (distillationEquipment) {
-										// It's already in the list but might be disabled
-										distillationEquipment.disabled = false;
-									}
-								}
+							// Run mission-specific completion code
+							if (mission.onComplete && typeof mission.onComplete === 'function') {
+								mission.onComplete();
 							}
 
 							addNotification(
@@ -3676,7 +3763,7 @@
 								'mission'
 							);
 
-							// Level up if needed
+							// Level up
 							playerLevel.value += 1;
 							currentLevelProgress.value = 0;
 
@@ -4068,146 +4155,194 @@
 				// Sort the ids to ensure consistent matching regardless of order
 				workspaceIds.sort();
 
-				// Check each recipe to see if it matches
+				// First, look for recipes that match both the inputs AND equipment
+				// This prioritizes equipment-specific reactions
+				let matchedRecipe = null;
+				let requiresEquipment = false;
+				let requiresTemperature = false;
+				let missingEquipment = [];
+				let temperatureRange = null;
+
+				// First pass: Look for recipes that match with equipment
 				for (const recipe of recipes.value) {
 					const inputs = [...recipe.inputs].sort();
 
 					// Check if all recipe inputs are in the workspace
 					const inputsMatch = arraysMatch(inputs, workspaceIds);
 
-					// Check if required equipment is active
-					const hasRequiredEquipment = !recipe.requiredEquipment ||
-						recipe.requiredEquipment.every(eq => equipmentIds.includes(eq));
+					if (inputsMatch) {
+						// Check if recipe requires equipment
+						if (recipe.requiredEquipment && recipe.requiredEquipment.length > 0) {
+							requiresEquipment = true;
 
-					// Check temperature requirements
-					const temperatureOk = !recipe.requiredTemperature ||
-						(temperature.value >= recipe.requiredTemperature.min &&
-							temperature.value <= recipe.requiredTemperature.max);
+							// Check if required equipment is active
+							const hasRequiredEquipment = recipe.requiredEquipment.every(eq => equipmentIds.includes(eq));
 
-					// If all conditions match
-					if (inputsMatch && hasRequiredEquipment && temperatureOk) {
-						const output = recipe.output;
+							if (hasRequiredEquipment) {
+								// Check temperature requirements
+								const temperatureOk = !recipe.requiredTemperature ||
+									(temperature.value >= recipe.requiredTemperature.min &&
+										temperature.value <= recipe.requiredTemperature.max);
 
-						// Check if already discovered
-						if (!discoveredItems.value.some(item => item.id === output.id)) {
-							discoveredItems.value.push(output);
-							newlyDiscovered.value.push(output.id);
-
-							// Update level progress
-							currentLevelProgress.value += 1;
-							if (currentLevelProgress.value >= currentLevelTarget.value) {
-								playerLevel.value += 1;
-								currentLevelProgress.value = 0;
-
-								addNotification(
-									translate({de: 'Level aufgestiegen!', en: 'Level Up!'}),
-									translate({
-										de: `Du bist jetzt Level ${playerLevel.value}!`,
-										en: `You are now level ${playerLevel.value}!`
-									}),
-									'info'
-								);
+								if (temperatureOk) {
+									// Found a perfect match with equipment and temperature
+									matchedRecipe = recipe;
+									break; // Use this recipe immediately
+								} else if (recipe.requiredTemperature) {
+									requiresTemperature = true;
+									temperatureRange = recipe.requiredTemperature;
+								}
+							} else {
+								// Keep track of missing equipment for feedback
+								missingEquipment = recipe.requiredEquipment.filter(eq => !equipmentIds.includes(eq));
 							}
-
-							// Show discovery notification
-							addNotification(
-								translate({de: 'Neue Entdeckung!', en: 'New Discovery!'}),
-								translate({
-									de: `Du hast ${output.name} entdeckt!`,
-									en: `You discovered ${output.name}!`
-								}),
-								'discovery'
-							);
-
-							// Show reaction animation
-							showReactionAnimation.value = true;
-							reactionResult.value = {
-								success: true,
-								symbol: output.symbol,
-								title: translate({de: 'Reaktion erfolgreich!', en: 'Reaction Successful!'}),
-								message: translate({
-									de: `Du hast erfolgreich ${output.name} erzeugt!`,
-									en: `You successfully created ${output.name}!`
-								})
-							};
-
-							// Clear newly discovered flag after a while
-							setTimeout(() => {
-								newlyDiscovered.value = newlyDiscovered.value.filter(id => id !== output.id);
-							}, 5000);
-
-							// Replace workspace with new discovery
-							workspace.value = [output];
-
-							// Check missions and achievements
-							checkMissions();
-							checkAchievements();
-
-							return;
-						} else {
-							// If already discovered, just show success message
-							showReactionAnimation.value = true;
-							reactionResult.value = {
-								success: true,
-								symbol: output.symbol,
-								title: translate({de: 'Reaktion erfolgreich!', en: 'Reaction Successful!'}),
-								message: translate({
-									de: `Du hast ${output.name} erneut erzeugt.`,
-									en: `You created ${output.name} again.`
-								})
-							};
-
-							// Replace workspace with created item
-							workspace.value = [discoveredItems.value.find(item => item.id === output.id)];
-							return;
 						}
 					}
+				}
 
-					// If inputs match but other requirements don't
-					if (inputsMatch && (!hasRequiredEquipment || !temperatureOk)) {
-						showReactionAnimation.value = true;
+				// Second pass: Only if we didn't find an equipment match, look for recipes without equipment
+				if (!matchedRecipe) {
+					for (const recipe of recipes.value) {
+						const inputs = [...recipe.inputs].sort();
 
-						let failureMessage = '';
+						// Check if all recipe inputs are in the workspace
+						const inputsMatch = arraysMatch(inputs, workspaceIds);
 
-						if (!hasRequiredEquipment && recipe.requiredEquipment) {
-							const missingEquipment = recipe.requiredEquipment
-								.filter(eq => !equipmentIds.includes(eq))
-								.map(eq => getEquipmentNameById(eq))
-								.join(', ');
+						if (inputsMatch && (!recipe.requiredEquipment || recipe.requiredEquipment.length === 0)) {
+							// Check temperature requirements
+							const temperatureOk = !recipe.requiredTemperature ||
+								(temperature.value >= recipe.requiredTemperature.min &&
+									temperature.value <= recipe.requiredTemperature.max);
 
-							failureMessage = translate({
-								de: `Du benötigst: ${missingEquipment}`,
-								en: `You need: ${missingEquipment}`
-							});
-						} else if (!temperatureOk && recipe.requiredTemperature) {
-							failureMessage = translate({
-								de: `Benötigte Temperatur: ${recipe.requiredTemperature.min} - ${recipe.requiredTemperature.max}°C`,
-								en: `Required temperature: ${recipe.requiredTemperature.min} - ${recipe.requiredTemperature.max}°C`
-							});
+							if (temperatureOk) {
+								matchedRecipe = recipe;
+								break;
+							} else if (recipe.requiredTemperature) {
+								requiresTemperature = true;
+								temperatureRange = recipe.requiredTemperature;
+							}
+						}
+					}
+				}
+
+				// If we found a matching recipe
+				if (matchedRecipe) {
+					const output = matchedRecipe.output;
+
+					// Check if already discovered
+					if (!discoveredItems.value.some(item => item.id === output.id)) {
+						discoveredItems.value.push(output);
+						newlyDiscovered.value.push(output.id);
+
+						// Update level progress
+						currentLevelProgress.value += 1;
+						if (currentLevelProgress.value >= currentLevelTarget.value) {
+							playerLevel.value += 1;
+							currentLevelProgress.value = 0;
+
+							addNotification(
+								translate({de: 'Level aufgestiegen!', en: 'Level Up!'}),
+								translate({
+									de: `Du bist jetzt Level ${playerLevel.value}!`,
+									en: `You are now level ${playerLevel.value}!`
+								}),
+								'info'
+							);
 						}
 
+						// Show discovery notification
+						addNotification(
+							translate({de: 'Neue Entdeckung!', en: 'New Discovery!'}),
+							translate({
+								de: `Du hast ${output.name} entdeckt!`,
+								en: `You discovered ${output.name}!`
+							}),
+							'discovery'
+						);
+
+						// Show reaction animation
+						showReactionAnimation.value = true;
 						reactionResult.value = {
-							success: false,
-							symbol: '❌',
-							title: translate({de: 'Reaktion fehlgeschlagen!', en: 'Reaction Failed!'}),
-							message: failureMessage
+							success: true,
+							symbol: output.symbol,
+							title: translate({de: 'Reaktion erfolgreich!', en: 'Reaction Successful!'}),
+							message: translate({
+								de: `Du hast erfolgreich ${output.name} erzeugt!`,
+								en: `You successfully created ${output.name}!`
+							})
 						};
 
+						// Clear newly discovered flag after a while
+						setTimeout(() => {
+							newlyDiscovered.value = newlyDiscovered.value.filter(id => id !== output.id);
+						}, 5000);
+
+						// Replace workspace with new discovery
+						workspace.value = [output];
+
+						// Check missions and achievements
+						checkMissions();
+						checkAchievements();
+
+						return;
+					} else {
+						// If already discovered, just show success message
+						showReactionAnimation.value = true;
+						reactionResult.value = {
+							success: true,
+							symbol: output.symbol,
+							title: translate({de: 'Reaktion erfolgreich!', en: 'Reaction Successful!'}),
+							message: translate({
+								de: `Du hast ${output.name} erneut erzeugt.`,
+								en: `You created ${output.name} again.`
+							})
+						};
+
+						// Replace workspace with created item
+						workspace.value = [discoveredItems.value.find(item => item.id === output.id)];
 						return;
 					}
 				}
 
 				// If we got here, no matching recipe was found
 				showReactionAnimation.value = true;
-				reactionResult.value = {
-					success: false,
-					symbol: '❓',
-					title: translate({de: 'Keine Reaktion', en: 'No Reaction'}),
-					message: translate({
-						de: 'Diese Elemente können nicht kombiniert werden.',
-						en: 'These elements cannot be combined.'
-					})
-				};
+
+				// Provide meaningful feedback based on what's missing
+				if (requiresEquipment && missingEquipment.length > 0) {
+					const missingEquipmentNames = missingEquipment
+						.map(eq => getEquipmentNameById(eq))
+						.join(', ');
+
+					reactionResult.value = {
+						success: false,
+						symbol: '⚗️',
+						title: translate({de: 'Ausrüstung fehlt', en: 'Equipment Needed'}),
+						message: translate({
+							de: `Du benötigst: ${missingEquipmentNames}`,
+							en: `You need: ${missingEquipmentNames}`
+						})
+					};
+				} else if (requiresTemperature && temperatureRange) {
+					reactionResult.value = {
+						success: false,
+						symbol: '🌡️',
+						title: translate({de: 'Temperatur nicht passend', en: 'Incorrect Temperature'}),
+						message: translate({
+							de: `Benötigte Temperatur: ${temperatureRange.min} - ${temperatureRange.max}°C`,
+							en: `Required temperature: ${temperatureRange.min} - ${temperatureRange.max}°C`
+						})
+					};
+				} else {
+					reactionResult.value = {
+						success: false,
+						symbol: '❓',
+						title: translate({de: 'Keine Reaktion', en: 'No Reaction'}),
+						message: translate({
+							de: 'Diese Elemente können nicht kombiniert werden.',
+							en: 'These elements cannot be combined.'
+						})
+					};
+				}
 			}
 
 			// Helper to check if arrays have the same elements
@@ -4239,13 +4374,24 @@
 					de: 'Bist du sicher? Alle Fortschritte gehen verloren!',
 					en: 'Are you sure? All progress will be lost!'
 				}))) {
+					// Clear workspace and equipment
 					workspace.value = [];
+					activeEquipment.value = [];
+
+					// Reset player progress
 					discoveredItems.value = [];
 					newlyDiscovered.value = [];
 					playerLevel.value = 1;
 					currentLevelProgress.value = 0;
-					activeEquipment.value = [];
 					temperature.value = 25;
+
+					// Reset UI state
+					activeTab.value = 'lab';
+					selectedDiscovery.value = null;
+					selectedElement.value = null;
+					currentPage.value = 1;
+					discoveryFilter.value = 'all';
+					searchQuery.value = '';
 
 					// Reset missions
 					missions.value.forEach(mission => {
@@ -4259,6 +4405,13 @@
 						achievement.unlocked = false;
 					});
 
+					// Clear localStorage
+					localStorage.removeItem('elementcraft-save');
+
+					// Also clear any active notification
+					notifications.value = [];
+
+					// Show reset notification
 					addNotification(
 						translate({de: 'Spiel zurückgesetzt', en: 'Game Reset'}),
 						translate({
@@ -4277,40 +4430,160 @@
 					try {
 						const gameData = JSON.parse(savedGame);
 
-						// Load basic game state
-						discoveredItems.value = gameData.discovered || [];
-						playerLevel.value = gameData.level || 1;
-						currentLevelProgress.value = gameData.progress || 0;
+						// Validate game data before loading
+						if (isValidGameData(gameData)) {
+							// Load basic game state
+							discoveredItems.value = gameData.discovered || [];
+							playerLevel.value = gameData.level || 1;
+							currentLevelProgress.value = gameData.progress || 0;
 
-						// Load missions
-						if (gameData.missions) {
-							gameData.missions.forEach(savedMission => {
-								const mission = missions.value.find(m => m.id === savedMission.id);
-								if (mission) {
-									mission.completed = savedMission.completed;
-									mission.progress = savedMission.progress;
-								}
-							});
-						}
+							// Load missions
+							loadMissionsFromSave(gameData.missions);
 
-						// Load achievements
-						if (gameData.achievements) {
-							gameData.achievements.forEach(savedAchievement => {
-								const achievement = achievements.value.find(a => a.id === savedAchievement.id);
-								if (achievement) {
-									achievement.unlocked = savedAchievement.unlocked;
-								}
-							});
-						}
+							// Load achievements
+							if (gameData.achievements) {
+								gameData.achievements.forEach(savedAchievement => {
+									const achievement = achievements.value.find(a => a.id === savedAchievement.id);
+									if (achievement) {
+										achievement.unlocked = savedAchievement.unlocked;
+									}
+								});
+							}
 
-						// Load active mission
-						if (gameData.activeMission) {
-							activeMission.value = missions.value.find(m => m.id === gameData.activeMission);
+							// Load active mission
+							if (gameData.activeMission) {
+								activeMission.value = missions.value.find(m => m.id === gameData.activeMission);
+							}
+
+							// After loading, check if any missions are completed
+							checkMissions();
+
+							// Check if achievements are unlocked
+							checkAchievements();
+						} else {
+							// If invalid data, reset the game
+							console.error('Invalid saved game data detected. Resetting game state.');
+							localStorage.removeItem('elementcraft-save');
+							addNotification(
+								translate({de: 'Fehler beim Laden', en: 'Loading Error'}),
+								translate({
+									de: 'Beschädigte Spieldaten wurden erkannt. Das Spiel wurde zurückgesetzt.',
+									en: 'Corrupted game data detected. The game has been reset.'
+								}),
+								'info'
+							);
 						}
 					} catch (e) {
 						console.error('Failed to load saved game:', e);
+						localStorage.removeItem('elementcraft-save');
 					}
 				}
+			}
+
+			function isValidGameData(gameData) {
+				// Check if basic structure is present
+				if (!gameData || typeof gameData !== 'object') return false;
+
+				// Validate discovered items
+				if (gameData.discovered) {
+					if (!Array.isArray(gameData.discovered)) return false;
+
+					// Check each discovered item
+					for (const item of gameData.discovered) {
+						// Each item should be an object with id, name, category, etc.
+						if (!item || typeof item !== 'object' || !item.id || !item.name || !item.category) {
+							return false;
+						}
+
+						// Validate against known recipes to ensure it's a valid item
+						const validRecipe = recipes.value.some(recipe => recipe.output.id === item.id);
+						const validElement = [...basicElements.value, ...advancedElements.value].some(el => el.id === item.id);
+
+						if (!validRecipe && !validElement) {
+							console.warn(`Invalid discovered item found: ${item.id}`);
+							return false;
+						}
+					}
+				}
+
+				// Validate player level
+				if (gameData.level !== undefined) {
+					if (typeof gameData.level !== 'number' || gameData.level < 1 || gameData.level > 20) {
+						return false;
+					}
+				}
+
+				// Validate progress
+				if (gameData.progress !== undefined) {
+					if (typeof gameData.progress !== 'number' || gameData.progress < 0) {
+						return false;
+					}
+				}
+
+				// Validate missions
+				if (gameData.missions) {
+					if (!Array.isArray(gameData.missions)) return false;
+
+					for (const mission of gameData.missions) {
+						if (!mission || typeof mission !== 'object' || !mission.id) {
+							return false;
+						}
+
+						// Check if it's a valid mission ID
+						if (!missions.value.some(m => m.id === mission.id)) {
+							return false;
+						}
+					}
+				}
+
+				// Validate achievements
+				if (gameData.achievements) {
+					if (!Array.isArray(gameData.achievements)) return false;
+
+					for (const achievement of gameData.achievements) {
+						if (!achievement || typeof achievement !== 'object' || !achievement.id) {
+							return false;
+						}
+
+						// Check if it's a valid achievement ID
+						if (!achievements.value.some(a => a.id === achievement.id)) {
+							return false;
+						}
+					}
+				}
+
+				// If active mission is present, validate it
+				if (gameData.activeMission) {
+					if (typeof gameData.activeMission !== 'string' ||
+						!missions.value.some(m => m.id === gameData.activeMission)) {
+						return false;
+					}
+				}
+
+				// All validations passed
+				return true;
+			}
+
+			// Load missions state from saved game
+			function loadMissionsFromSave(savedMissions) {
+				if (savedMissions && Array.isArray(savedMissions)) {
+					savedMissions.forEach(savedMission => {
+						const mission = missions.value.find(m => m.id === savedMission.id);
+						if (mission) {
+							mission.completed = savedMission.completed;
+							mission.progress = savedMission.progress;
+						}
+					});
+				}
+			}
+
+			// Save missions state for local storage
+			function saveMissionsToObject() {
+				return missions.value.map(mission => ({
+					id: mission.id,
+					completed: mission.completed,
+					progress: mission.progress
+				}));
 			}
 
 			// Save game to localStorage
@@ -4319,11 +4592,7 @@
 					discovered: discoveredItems.value,
 					level: playerLevel.value,
 					progress: currentLevelProgress.value,
-					missions: missions.value.map(mission => ({
-						id: mission.id,
-						completed: mission.completed,
-						progress: mission.progress
-					})),
+					missions: saveMissionsToObject(),
 					achievements: achievements.value.map(achievement => ({
 						id: achievement.id,
 						unlocked: achievement.unlocked
@@ -5068,6 +5337,7 @@
 				totalPages,
 				paginationPages,
 				recipeCount,
+				missions,
 				availableMissions,
 				achievements,
 
