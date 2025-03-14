@@ -22,6 +22,10 @@
             z-index: 10;
         }
 
+        .break-word {
+            word-break: break-word;
+        }
+
         .workspace-area {
             min-height: 200px;
         }
@@ -390,23 +394,71 @@
         <div v-if="activeMission" class="mb-4 p-3 rounded-lg shadow-md"
              :class="darkMode ? 'bg-gray-800' : 'bg-blue-50 text-blue-800'">
             <div class="flex justify-between items-start">
-                <div class="flex items-start">
-                    <svg class="h-5 w-5 mt-1 mr-2 flex-shrink-0"
-                         :class="darkMode ? 'text-yellow-400' : 'text-yellow-600'" xmlns="http://www.w3.org/2000/svg"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                    </svg>
-                    <div>
-                        <h3 class="font-bold text-sm sm:text-lg">{{ activeMission.title }}</h3>
-                        <p class="text-xs sm:text-sm">{{ activeMission.description }}</p>
-                        <div class="mt-2 w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
-                            <div class="bg-blue-600 h-2.5 rounded-full mission-progress"
-                                 :style="{ width: `${calculateMissionProgress(activeMission)}%` }"></div>
+                <div class="flex-grow">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 mt-1 mr-2 flex-shrink-0"
+                             :class="darkMode ? 'text-yellow-400' : 'text-yellow-600'" xmlns="http://www.w3.org/2000/svg"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <div>
+                            <h3 class="font-bold text-sm sm:text-lg">{{ activeMission.title }}</h3>
+                            <p class="text-xs sm:text-sm">{{ activeMission.description }}</p>
+                            <div class="mt-2 w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
+                                <div class="bg-blue-600 h-2.5 rounded-full mission-progress"
+                                     :style="{ width: `${calculateMissionProgress(activeMission)}%` }"></div>
+                            </div>
+                            <div class="mt-1 text-xs">
+                                {{ translate({de: 'Fortschritt', en: 'Progress'}) }}:
+                                {{ getMissionProgressText(activeMission) }}
+                            </div>
                         </div>
-                        <div class="mt-1 text-xs">
-                            {{ translate({de: 'Fortschritt', en: 'Progress'}) }}:
-                            {{ getMissionProgressText(activeMission) }}
+                    </div>
+
+                    <!-- Mission Hints -->
+                    <div class="mt-3 border-t pt-2 border-gray-200 dark:border-gray-700">
+                        <h4 class="text-xs font-semibold mb-1">{{ translate({de: 'Hinweise', en: 'Hints'}) }}:</h4>
+                        <ul class="space-y-1 list-disc pl-5 text-xs">
+                            <li v-for="(hint, idx) in getMissionHints(activeMission)" :key="idx">{{ hint }}</li>
+                        </ul>
+
+                        <h4 class="text-xs font-semibold mt-2 mb-1">{{ translate({de: 'Benötigte Zutaten', en: 'Required Ingredients'}) }}:</h4>
+                        <div v-for="req in activeMission.requirements" :key="req.id" class="mb-1 text-xs">
+                            <div v-if="req.type === 'discover'">
+                                <div class="flex items-center">
+                            <span :class="discoveredItems.some(item => item.id === req.id) ? 'line-through opacity-50' : ''">
+                                {{ getElementSymbolById(req.id) }}:
+                            </span>
+
+                                    <div v-if="getMissionIngredients(activeMission, req.id)" class="flex items-center ml-2">
+                                <span v-for="(ingredient, idx) in getMissionIngredients(activeMission, req.id).ingredients" :key="idx"
+                                      class="mx-1 px-1 rounded"
+                                      :class="isIngredientAvailable(ingredient) ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                                    {{ ingredient }}
+                                </span>
+
+                                        <span v-if="getMissionIngredients(activeMission, req.id).equipmentNeeded.length > 0" class="ml-2">
+                                    +
+                                    <span v-for="(eq, idx) in getMissionIngredients(activeMission, req.id).equipmentNeeded" :key="idx"
+                                          class="mx-1 px-1 rounded"
+                                          :class="activeEquipment.some(e => e.id === eq) ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                                        {{ getEquipmentNameById(eq) }}
+                                    </span>
+                                </span>
+
+                                        <span v-if="getMissionIngredients(activeMission, req.id).temperature" class="ml-2">
+                                    {{ translate({de: 'Temp', en: 'Temp'}) }}:
+                                    <span class="mx-1 px-1 rounded"
+                                          :class="temperature >= getMissionIngredients(activeMission, req.id).temperature.min &&
+                                                 temperature <= getMissionIngredients(activeMission, req.id).temperature.max ?
+                                                 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                                        {{ getMissionIngredients(activeMission, req.id).temperature.min }}-{{ getMissionIngredients(activeMission, req.id).temperature.max }}°C
+                                    </span>
+                                </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -509,12 +561,45 @@
                             {{ translate({de: 'Zustand', en: 'State'}) }}: {{ translateState(item.state) }}
                         </div>
                     </div>
-                    <div v-if="workspace.length === 0"
+                    <!-- Workspace Empty State with Suggestions -->
+                    <div v-if="workspace.length === 0 && activeMission"
                          class="w-full h-24 sm:h-32 flex items-center justify-center text-gray-500 italic text-xs sm:text-sm">
-                        {{ translate({
-                        de: 'Ziehe Elemente hierher, um zu experimentieren',
-                        en: 'Drag elements here to experiment'
-                    }) }}
+                        <div class="text-center">
+                            <p>{{ translate({
+                                de: 'Ziehe Elemente hierher, um zu experimentieren',
+                                en: 'Drag elements here to experiment'
+                            }) }}</p>
+
+                            <div v-if="displayWorkspaceHint()" class="mt-2 p-2 bg-blue-50 dark:bg-blue-900 rounded-md text-xs">
+                                <p class="font-semibold">{{ translate({de: 'Vorschlag', en: 'Suggestion'}) }}:</p>
+                                <p>{{ translate({
+                                    de: `Für ${displayWorkspaceHint().target}, füge hinzu:`,
+                                    en: `For ${displayWorkspaceHint().target}, add:`
+                                }) }}</p>
+
+                                <div v-if="displayWorkspaceHint().missingIngredients.length > 0" class="mt-1">
+                <span v-for="(ing, idx) in displayWorkspaceHint().missingIngredients" :key="idx"
+                      class="mx-1 px-1 rounded bg-green-100 dark:bg-green-800">
+                    {{ ing }}
+                </span>
+                                </div>
+
+                                <div v-if="displayWorkspaceHint().missingEquipment.length > 0" class="mt-1">
+                                    <span>{{ translate({de: 'Benötigte Ausrüstung', en: 'Required equipment'}) }}:</span>
+                                    <span v-for="(eq, idx) in displayWorkspaceHint().missingEquipment" :key="idx"
+                                          class="mx-1 px-1 rounded bg-yellow-100 dark:bg-yellow-800">
+                    {{ eq }}
+                </span>
+                                </div>
+
+                                <div v-if="displayWorkspaceHint().temperature" class="mt-1">
+                                    <span>{{ translate({de: 'Temperatur', en: 'Temperature'}) }}:</span>
+                                    <span class="mx-1 px-1 rounded bg-orange-100 dark:bg-orange-800">
+                    {{ displayWorkspaceHint().temperature.min }}-{{ displayWorkspaceHint().temperature.max }}°C
+                </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -591,7 +676,7 @@
                          @dragstart="onDragStart($event, equipment, null, 'equipment')"
                          @click="addEquipment(equipment)">
                         <div class="font-bold text-base sm:text-lg">{{ equipment.symbol }}</div>
-                        <div class="text-xs">{{ equipment.name }}</div>
+                        <div class="text-xs break-word">{{ equipment.name }}</div>
                         <div class="tooltip" :class="darkMode ? 'bg-gray-700' : 'bg-white text-gray-800'">
                             <h4 class="font-bold text-xs sm:text-sm">{{ equipment.name }}</h4>
                             <p class="text-xs mt-1">{{ equipment.description }}</p>
@@ -1048,11 +1133,11 @@
                                 <h4 class="font-semibold">{{ mission.title }}</h4>
                                 <span class="text-xs px-2 py-0.5 rounded-full"
                                       :class="mission.completed ? 'bg-green-500 text-white' : (darkMode ? 'bg-gray-600' : 'bg-gray-300')">
-                    {{ mission.completed ? translate({de: 'Abgeschlossen', en: 'Completed'}) : translate({
+            {{ mission.completed ? translate({de: 'Abgeschlossen', en: 'Completed'}) : translate({
                                     de: 'Offen',
                                     en: 'Open'
                                 }) }}
-                  </span>
+        </span>
                             </div>
                             <p class="text-xs sm:text-sm mt-1">{{ mission.description }}</p>
                             <div class="mt-2 w-full bg-gray-300 dark:bg-gray-600 rounded-full h-2">
@@ -1063,6 +1148,60 @@
                                 <span>{{ getMissionProgressText(mission) }}</span>
                                 <span>{{ translate({de: 'Belohnung', en: 'Reward'}) }}: {{ mission.reward }}</span>
                             </div>
+
+                            <!-- Mission Hints (collapsed by default) -->
+                            <div v-if="!mission.completed" class="mt-2">
+                                <button @click="mission.showHints = !mission.showHints" class="text-xs text-blue-500 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ mission.showHints ? translate({de: 'Hinweise ausblenden', en: 'Hide Hints'}) : translate({de: 'Hinweise anzeigen', en: 'Show Hints'}) }}
+                                </button>
+
+                                <div v-if="mission.showHints" class="mt-2 p-2 bg-blue-50 dark:bg-blue-900 rounded-md">
+                                    <h5 class="text-xs font-semibold mb-1">{{ translate({de: 'Hinweise', en: 'Hints'}) }}:</h5>
+                                    <ul class="space-y-1 list-disc pl-5 text-xs">
+                                        <li v-for="(hint, idx) in getMissionHints(mission)" :key="idx">{{ hint }}</li>
+                                    </ul>
+
+                                    <h5 class="text-xs font-semibold mt-2 mb-1">{{ translate({de: 'Benötigte Zutaten', en: 'Required Ingredients'}) }}:</h5>
+                                    <div v-for="req in mission.requirements" :key="req.id" class="mb-1">
+                                        <div v-if="req.type === 'discover'" class="flex items-center text-xs">
+                    <span :class="discoveredItems.some(item => item.id === req.id) ? 'line-through opacity-50' : ''">
+                        {{ getElementSymbolById(req.id) }}:
+                    </span>
+
+                                            <div v-if="getMissionIngredients(mission, req.id)" class="flex items-center ml-2">
+                        <span v-for="(ingredient, idx) in getMissionIngredients(mission, req.id).ingredients" :key="idx"
+                              class="mx-1 px-1 rounded"
+                              :class="isIngredientAvailable(ingredient) ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                            {{ getElementSymbolById(ingredient) }}
+                        </span>
+
+                                                <span v-if="getMissionIngredients(mission, req.id).equipmentNeeded.length > 0" class="ml-2">
+                            +
+                            <span v-for="(eq, idx) in getMissionIngredients(mission, req.id).equipmentNeeded" :key="idx"
+                                  class="mx-1 px-1 rounded"
+                                  :class="activeEquipment.some(e => e.id === eq) ? 'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                                {{ getEquipmentNameById(eq) }}
+                            </span>
+                        </span>
+
+                                                <span v-if="getMissionIngredients(mission, req.id).temperature" class="ml-2">
+                            {{ translate({de: 'Temp', en: 'Temp'}) }}:
+                            <span class="mx-1 px-1 rounded"
+                                  :class="temperature >= getMissionIngredients(mission, req.id).temperature.min &&
+                                         temperature <= getMissionIngredients(mission, req.id).temperature.max ?
+                                         'bg-green-100 dark:bg-green-800' : 'bg-red-100 dark:bg-red-800'">
+                                {{ getMissionIngredients(mission, req.id).temperature.min }}-{{ getMissionIngredients(mission, req.id).temperature.max }}°C
+                            </span>
+                        </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
                                     v-if="!mission.completed && !activeMission"
                                     @click="selectActiveMission(mission)"
@@ -3187,6 +3326,7 @@
 			]);
 
 			// Missions
+			// Enhanced missions with detailed guidance
 			const missions = ref([
 				{
 					id: 'mission1',
@@ -3195,6 +3335,28 @@
 						de: 'Entdecke die grundlegenden Moleküle Wasser (H₂O) und Wasserstoffgas (H₂).',
 						en: 'Discover the basic molecules Water (H₂O) and Hydrogen Gas (H₂).'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere zwei Wasserstoffatome (H), um Wasserstoffgas (H₂) zu erzeugen.',
+							en: 'Combine two Hydrogen atoms (H) to create Hydrogen Gas (H₂).'
+						}),
+						translate({
+							de: 'Für Wasser (H₂O), kombiniere zwei Wasserstoffatome (H) mit einem Sauerstoffatom (O).',
+							en: 'For Water (H₂O), combine two Hydrogen atoms (H) with one Oxygen atom (O).'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'H2',
+							ingredients: ['H', 'H'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'H2O',
+							ingredients: ['H', 'H', 'O'],
+							equipmentNeeded: []
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'H2O'},
 						{type: 'discover', id: 'H2'}
@@ -3218,6 +3380,37 @@
 						de: 'Erzeuge Salzsäure (HCl) und führe eine Neutralisationsreaktion durch.',
 						en: 'Create Hydrochloric Acid (HCl) and perform a neutralization reaction.'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere Wasserstoff (H) mit Chlor (Cl), um Salzsäure (HCl) zu erzeugen.',
+							en: 'Combine Hydrogen (H) with Chlorine (Cl) to create Hydrochloric Acid (HCl).'
+						}),
+						translate({
+							de: 'Stelle Natronlauge (NaOH) her, indem du Natrium (Na), Sauerstoff (O) und Wasserstoff (H) kombinierst.',
+							en: 'Create Sodium Hydroxide (NaOH) by combining Sodium (Na), Oxygen (O), and Hydrogen (H).'
+						}),
+						translate({
+							de: 'Nutze ein Reagenzglas, um Salzsäure mit Natronlauge zu neutralisieren.',
+							en: 'Use a test tube to neutralize Hydrochloric Acid with Sodium Hydroxide.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'HCl',
+							ingredients: ['H', 'Cl'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'NaOH',
+							ingredients: ['Na', 'O', 'H'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'NaCl_H2O',
+							ingredients: ['HCl', 'NaOH'],
+							equipmentNeeded: ['test_tube']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'HCl'},
 						{type: 'discover', id: 'NaOH'},
@@ -3242,6 +3435,37 @@
 						de: 'Entdecke verschiedene Kohlenstoffverbindungen: CO₂, CO und CH₄.',
 						en: 'Discover various carbon compounds: CO₂, CO, and CH₄.'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere Kohlenstoff (C) mit Sauerstoff (O), um Kohlenmonoxid (CO) zu erzeugen.',
+							en: 'Combine Carbon (C) with Oxygen (O) to create Carbon Monoxide (CO).'
+						}),
+						translate({
+							de: 'Füge einem weiteren Sauerstoffatom (O) zu CO hinzu, um Kohlendioxid (CO₂) zu erzeugen.',
+							en: 'Add another Oxygen atom (O) to CO to create Carbon Dioxide (CO₂).'
+						}),
+						translate({
+							de: 'Für Methan (CH₄), kombiniere Kohlenstoff (C) mit vier Wasserstoffatomen (H).',
+							en: 'For Methane (CH₄), combine Carbon (C) with four Hydrogen atoms (H).'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'CO2',
+							ingredients: ['C', 'O', 'O'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'CO',
+							ingredients: ['C', 'O'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'CH4',
+							ingredients: ['C', 'H', 'H', 'H', 'H'],
+							equipmentNeeded: []
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'CO2'},
 						{type: 'discover', id: 'CO'},
@@ -3266,6 +3490,39 @@
 						de: 'Erzeuge Rost und führe einen Schmelzprozess durch, um Stahl herzustellen.',
 						en: 'Create rust and perform a smelting process to produce steel.'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere Eisen (Fe) mit Sauerstoff (O₂), um Rost (Fe₂O₃) zu erzeugen.',
+							en: 'Combine Iron (Fe) with Oxygen (O₂) to create Rust (Fe₂O₃).'
+						}),
+						translate({
+							de: 'Für die Eisengewinnung brauchst du Rost (Fe₂O₃), Kohlenstoff (C) und den Bunsenbrenner. Stelle eine Temperatur zwischen 700°C und 1200°C ein.',
+							en: 'For Iron Smelting, you need Rust (Fe₂O₃), Carbon (C), and the Bunsen Burner. Set a temperature between 700°C and 1200°C.'
+						}),
+						translate({
+							de: 'Erzeuge Stahl, indem du Eisen (Fe) und Kohlenstoff (C) mit dem Bunsenbrenner bei 800°C bis 1200°C kombinierst.',
+							en: 'Create Steel by combining Iron (Fe) and Carbon (C) with the Bunsen Burner at 800°C to 1200°C.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'Fe2O3',
+							ingredients: ['Fe', 'O2'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'Fe_CO2',
+							ingredients: ['Fe2O3', 'C'],
+							equipmentNeeded: ['bunsen_burner'],
+							temperature: {min: 700, max: 1200}
+						},
+						{
+							id: 'steel',
+							ingredients: ['Fe', 'C'],
+							equipmentNeeded: ['bunsen_burner'],
+							temperature: {min: 800, max: 1200}
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'Fe2O3'},
 						{type: 'discover', id: 'Fe_CO2'},
@@ -3299,6 +3556,28 @@
 						de: 'Führe Elektrolyse von Wasser und Salzlösung durch.',
 						en: 'Perform electrolysis of water and salt solution.'
 					}),
+					hints: [
+						translate({
+							de: 'Für die Wasserelektrolyse benötigst du Wasser (H₂O), Elektrizität und ein Becherglas.',
+							en: 'For water electrolysis, you need Water (H₂O), Electricity, and a Beaker.'
+						}),
+						translate({
+							de: 'Für den Chlor-Alkali-Prozess kombiniere Kochsalz (NaCl), Wasser (H₂O), Elektrizität und ein Becherglas.',
+							en: 'For the Chlor-Alkali Process, combine Table Salt (NaCl), Water (H₂O), Electricity, and a Beaker.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'electrolysis',
+							ingredients: ['H2O'],
+							equipmentNeeded: ['electricity', 'beaker']
+						},
+						{
+							id: 'NaCl_electrolysis',
+							ingredients: ['NaCl', 'H2O'],
+							equipmentNeeded: ['electricity', 'beaker']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'electrolysis'},
 						{type: 'discover', id: 'NaCl_electrolysis'}
@@ -3315,7 +3594,6 @@
 						}
 					}
 				},
-				// NEW MISSIONS
 				{
 					id: 'mission6',
 					title: translate({de: 'Halogenchemie', en: 'Halogen Chemistry'}),
@@ -3323,6 +3601,28 @@
 						de: 'Erforsche die reaktiven Halogene und stelle Fluorwasserstoff her.',
 						en: 'Explore reactive halogens and create hydrogen fluoride.'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere Wasserstoff (H) mit Fluor (F), um Fluorwasserstoff (HF) zu erzeugen.',
+							en: 'Combine Hydrogen (H) with Fluorine (F) to create Hydrogen Fluoride (HF).'
+						}),
+						translate({
+							de: 'Für die Glasätzung benötigst du Fluorwasserstoff (HF), Siliziumdioxid (SiO₂) und ein Becherglas.',
+							en: 'For Glass Etching, you need Hydrogen Fluoride (HF), Silicon Dioxide (SiO₂), and a Beaker.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'HF',
+							ingredients: ['H', 'F'],
+							equipmentNeeded: []
+						},
+						{
+							id: 'glass_etching',
+							ingredients: ['HF', 'SiO2'],
+							equipmentNeeded: ['beaker']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'HF'},
 						{type: 'discover', id: 'glass_etching'}
@@ -3349,6 +3649,28 @@
 						de: 'Entdecke lichtempfindliche Silberverbindungen für die Fotografie.',
 						en: 'Discover light-sensitive silver compounds for photography.'
 					}),
+					hints: [
+						translate({
+							de: 'Kombiniere Silber (Ag) mit Brom (Br), um Silberbromid (AgBr) herzustellen. Verwende das UV-Licht als Ausrüstung.',
+							en: 'Combine Silver (Ag) with Bromine (Br) to create Silver Bromide (AgBr). Use the UV Light equipment.'
+						}),
+						translate({
+							de: 'Für die fotografische Reaktion kombiniere Silberbromid (AgBr) mit Wasser (H₂O) und verwende das UV-Licht.',
+							en: 'For the Photographic Reaction, combine Silver Bromide (AgBr) with Water (H₂O) and use the UV Light.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'AgBr',
+							ingredients: ['Ag', 'Br'],
+							equipmentNeeded: ['uv_light']
+						},
+						{
+							id: 'photography',
+							ingredients: ['AgBr', 'H2O'],
+							equipmentNeeded: ['uv_light']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'AgBr'},
 						{type: 'discover', id: 'photography'}
@@ -3362,7 +3684,6 @@
 					unlockLevel: 7,
 					onComplete: () => {
 						// This mission could unlock specialized equipment or capabilities
-						// For now, this is a placeholder that could be expanded
 						addNotification(
 							translate({de: 'Neue Fähigkeiten', en: 'New Capabilities'}),
 							translate({
@@ -3380,6 +3701,28 @@
 						de: 'Führe organische Reaktionen und Veresterung durch.',
 						en: 'Conduct organic reactions and esterification.'
 					}),
+					hints: [
+						translate({
+							de: 'Für die Fermentation brauchst du Glukose (C₆H₁₂O₆) und ein Becherglas.',
+							en: 'For Fermentation, you need Glucose (C₆H₁₂O₆) and a Beaker.'
+						}),
+						translate({
+							de: 'Für die Veresterung kombiniere Ethanol (C₂H₅OH) mit Essigsäure (CH₃COOH) und verwende ein Becherglas und einen Katalysator.',
+							en: 'For Esterification, combine Ethanol (C₂H₅OH) with Acetic Acid (CH₃COOH) and use a Beaker and a Catalyst.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'fermentation',
+							ingredients: ['C6H12O6'],
+							equipmentNeeded: ['beaker']
+						},
+						{
+							id: 'esterification',
+							ingredients: ['C2H5OH', 'CH3COOH'],
+							equipmentNeeded: ['beaker', 'catalyst']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'fermentation'},
 						{type: 'discover', id: 'esterification'}
@@ -3393,7 +3736,6 @@
 					unlockLevel: 8,
 					onComplete: () => {
 						// This mission could unlock new organic recipes
-						// For now, this is a placeholder that could be expanded
 						addNotification(
 							translate({de: 'Organische Meisterschaft', en: 'Organic Mastery'}),
 							translate({
@@ -3411,6 +3753,29 @@
 						de: 'Führe industriell wichtige Prozesse wie den Haber-Prozess durch.',
 						en: 'Conduct industrially important processes like the Haber process.'
 					}),
+					hints: [
+						translate({
+							de: 'Für den Haber-Prozess kombiniere Stickstoff (N₂) mit Wasserstoff (H₂) und verwende einen Katalysator und ein Becherglas.',
+							en: 'For the Haber Process, combine Nitrogen (N₂) with Hydrogen (H₂) and use a Catalyst and a Beaker.'
+						}),
+						translate({
+							de: 'Für die Erdöldestillation brauchst du Rohöl, den Destillationsapparat und den Bunsenbrenner. Die Temperatur sollte zwischen 25°C und 400°C liegen.',
+							en: 'For Petroleum Distillation, you need Crude Oil, the Distillation Apparatus, and the Bunsen Burner. Temperature should be between 25°C and 400°C.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'haber_process',
+							ingredients: ['N2', 'H2'],
+							equipmentNeeded: ['catalyst', 'beaker']
+						},
+						{
+							id: 'petroleum_distillation',
+							ingredients: ['crude_oil'],
+							equipmentNeeded: ['distillation', 'bunsen_burner'],
+							temperature: {min: 25, max: 400}
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'haber_process'},
 						{type: 'discover', id: 'petroleum_distillation'}
@@ -3441,6 +3806,30 @@
 						de: 'Erforsche moderne Materialien und Legierungen.',
 						en: 'Research modern materials and alloys.'
 					}),
+					hints: [
+						translate({
+							de: 'Für Messing kombiniere Kupfer (Cu) mit Zink (Zn) und verwende den Bunsenbrenner. Die Temperatur sollte zwischen 900°C und 1000°C liegen.',
+							en: 'For Brass, combine Copper (Cu) with Zinc (Zn) and use the Bunsen Burner. Temperature should be between 900°C and 1000°C.'
+						}),
+						translate({
+							de: 'Für Bronze kombiniere Kupfer (Cu) mit Zinn (Sn) und verwende den Bunsenbrenner. Die Temperatur sollte zwischen 950°C und 1050°C liegen.',
+							en: 'For Bronze, combine Copper (Cu) with Tin (Sn) and use the Bunsen Burner. Temperature should be between 950°C and 1050°C.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'brass',
+							ingredients: ['Cu', 'Zn'],
+							equipmentNeeded: ['bunsen_burner'],
+							temperature: {min: 900, max: 1000}
+						},
+						{
+							id: 'bronze',
+							ingredients: ['Cu', 'Sn'],
+							equipmentNeeded: ['bunsen_burner'],
+							temperature: {min: 950, max: 1050}
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'brass'},
 						{type: 'discover', id: 'bronze'}
@@ -3472,6 +3861,37 @@
 						de: 'Erzeuge verschiedene Mineralsäuren und untersuche ihre Eigenschaften.',
 						en: 'Create various mineral acids and study their properties.'
 					}),
+					hints: [
+						translate({
+							de: 'Für Salpetersäure (HNO₃) kombiniere Stickstoff (N), Sauerstoff (O), Sauerstoff (O) und Wasserstoff (H). Verwende ein Becherglas und einen Katalysator.',
+							en: 'For Nitric Acid (HNO₃), combine Nitrogen (N), Oxygen (O), Oxygen (O), and Hydrogen (H). Use a Beaker and a Catalyst.'
+						}),
+						translate({
+							de: 'Für Phosphorsäure (H₃PO₄) kombiniere Phosphor (P), vier Sauerstoffatome (O) und drei Wasserstoffatome (H) mit einem Becherglas.',
+							en: 'For Phosphoric Acid (H₃PO₄), combine Phosphorus (P), four Oxygen atoms (O), and three Hydrogen atoms (H) with a Beaker.'
+						}),
+						translate({
+							de: 'Für konzentrierte Schwefelsäure verwende zwei Schwefelsäuremoleküle (H₂SO₄) mit dem Destillationsapparat.',
+							en: 'For concentrated Sulfuric Acid, use two Sulfuric Acid molecules (H₂SO₄) with the Distillation Apparatus.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'HNO3',
+							ingredients: ['N', 'O', 'O', 'H'],
+							equipmentNeeded: ['beaker', 'catalyst']
+						},
+						{
+							id: 'H3PO4',
+							ingredients: ['P', 'O', 'O', 'O', 'O', 'H', 'H', 'H'],
+							equipmentNeeded: ['beaker']
+						},
+						{
+							id: 'H2SO4_conc',
+							ingredients: ['H2SO4', 'H2SO4'],
+							equipmentNeeded: ['distillation']
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'HNO3'},
 						{type: 'discover', id: 'H3PO4'},
@@ -3495,6 +3915,7 @@
 						);
 					}
 				},
+
 				{
 					id: 'mission12',
 					title: translate({de: 'Industrielle Revolution', en: 'Industrial Revolution'}),
@@ -3502,6 +3923,40 @@
 						de: 'Führe industrielle Verfahren wie das Kontaktverfahren und das Ostwald-Verfahren durch.',
 						en: 'Conduct industrial processes like the Contact Process and Ostwald Process.'
 					}),
+					hints: [
+						translate({
+							de: 'Für das Kontaktverfahren kombiniere Schwefeldioxid (SO₂), Sauerstoff (O₂) und Wasser (H₂O) mit einem Katalysator und einem Becherglas. Die Temperatur sollte zwischen 400°C und 600°C liegen.',
+							en: 'For the Contact Process, combine Sulfur Dioxide (SO₂), Oxygen (O₂), and Water (H₂O) with a Catalyst and a Beaker. Temperature should be between 400°C and 600°C.'
+						}),
+						translate({
+							de: 'Für das Ostwald-Verfahren kombiniere Stickstoff (N), Sauerstoff (O) und Sauerstoff (O) mit einem Katalysator. Die Temperatur sollte zwischen 300°C und 600°C liegen.',
+							en: 'For the Ostwald Process, combine Nitrogen (N), Oxygen (O), and Oxygen (O) with a Catalyst. Temperature should be between 300°C and 600°C.'
+						}),
+						translate({
+							de: 'Für das katalytische Cracken brauchst du Rohöl, einen Katalysator und den Destillationsapparat. Die Temperatur sollte zwischen 450°C und 700°C liegen.',
+							en: 'For Catalytic Cracking, you need Crude Oil, a Catalyst, and the Distillation Apparatus. Temperature should be between 450°C and 700°C.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'contact_process',
+							ingredients: ['SO2', 'O2', 'H2O'],
+							equipmentNeeded: ['catalyst', 'beaker'],
+							temperature: {min: 400, max: 600}
+						},
+						{
+							id: 'ostwald',
+							ingredients: ['N', 'O', 'O'],
+							equipmentNeeded: ['catalyst'],
+							temperature: {min: 300, max: 600}
+						},
+						{
+							id: 'catalytic_cracking',
+							ingredients: ['crude_oil'],
+							equipmentNeeded: ['catalyst', 'distillation'],
+							temperature: {min: 450, max: 700}
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'contact_process'},
 						{type: 'discover', id: 'ostwald'},
@@ -3532,6 +3987,38 @@
 						de: 'Synthetisiere komplexe organische Verbindungen und Polymere.',
 						en: 'Synthesize complex organic compounds and polymers.'
 					}),
+					hints: [
+						translate({
+							de: 'Für Glycerin (C₃H₈O₃) kombiniere drei Kohlenstoffatome (C), acht Wasserstoffatome (H) und drei Sauerstoffatome (O) mit einem Becherglas und einem Katalysator.',
+							en: 'For Glycerol (C₃H₈O₃), combine three Carbon atoms (C), eight Hydrogen atoms (H), and three Oxygen atoms (O) with a Beaker and a Catalyst.'
+						}),
+						translate({
+							de: 'Für Aceton (C₃H₆O) kombiniere drei Kohlenstoffatome (C), sechs Wasserstoffatome (H) und ein Sauerstoffatom (O) mit dem Destillationsapparat.',
+							en: 'For Acetone (C₃H₆O), combine three Carbon atoms (C), six Hydrogen atoms (H), and one Oxygen atom (O) with the Distillation Apparatus.'
+						}),
+						translate({
+							de: 'Für Polyethylen verbinde vier Ethylenmoleküle (C₂H₄) mit einem Katalysator und einem Becherglas. Die Temperatur sollte zwischen 80°C und 250°C liegen.',
+							en: 'For Polyethylene, connect four Ethylene molecules (C₂H₄) with a Catalyst and a Beaker. Temperature should be between 80°C and 250°C.'
+						})
+					],
+					requirementDetails: [
+						{
+							id: 'C3H8O3',
+							ingredients: ['C', 'C', 'C', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'O', 'O', 'O'],
+							equipmentNeeded: ['beaker', 'catalyst']
+						},
+						{
+							id: 'C3H6O',
+							ingredients: ['C', 'C', 'C', 'H', 'H', 'H', 'H', 'H', 'H', 'O'],
+							equipmentNeeded: ['distillation']
+						},
+						{
+							id: 'polyethylene',
+							ingredients: ['C2H4', 'C2H4', 'C2H4', 'C2H4'],
+							equipmentNeeded: ['catalyst', 'beaker'],
+							temperature: {min: 80, max: 250}
+						}
+					],
 					requirements: [
 						{type: 'discover', id: 'C3H8O3'},
 						{type: 'discover', id: 'C3H6O'},
@@ -3556,6 +4043,21 @@
 					}
 				}
 			]);
+
+			function getMissionHints(mission) {
+				if (!mission || !mission.hints) return [];
+				return mission.hints;
+			}
+
+			function getMissionIngredients(mission, requirementId) {
+				if (!mission || !mission.requirementDetails) return null;
+				return mission.requirementDetails.find(detail => detail.id === requirementId);
+			}
+
+			function isIngredientAvailable(ingredientId) {
+				return basicElements.value.some(el => el.id === ingredientId) ||
+					discoveredItems.value.some(item => item.id === ingredientId);
+			}
 
 			// Available missions based on level
 			const availableMissions = computed(() => {
@@ -3778,8 +4280,22 @@
 
 			// Select active mission
 			function selectActiveMission(mission) {
+				// Initialize showHints property if not present
+				if (mission.showHints === undefined) {
+					mission.showHints = false;
+				}
+
 				activeMission.value = mission;
 				showMissionsModal.value = false;
+
+				// Show a helpful notification with the first hint
+				if (mission.hints && mission.hints.length > 0) {
+					addNotification(
+						translate({de: 'Missionshinweis', en: 'Mission Hint'}),
+						mission.hints[0],
+						'info'
+					);
+				}
 			}
 
 			// Open missions modal
@@ -3832,6 +4348,49 @@
 			function isElementAvailable(symbol) {
 				return basicElements.value.some(e => e.symbol === symbol) ||
 					discoveredItems.value.some(i => i.symbol === symbol);
+			}
+
+			function getWorkspaceSuggestions() {
+				if (!activeMission.value) return null;
+
+				// Find the first incomplete requirement
+				const incompleteReq = activeMission.value.requirements.find(req =>
+					!discoveredItems.value.some(item => item.id === req.id)
+				);
+
+				if (!incompleteReq) return null;
+
+				// Get the details for this requirement
+				const details = getMissionIngredients(activeMission.value, incompleteReq.id);
+				if (!details) return null;
+
+				// Return structured suggestion
+				return {
+					targetCompound: incompleteReq.id,
+					ingredients: details.ingredients,
+					equipment: details.equipmentNeeded
+				};
+			}
+
+			function displayWorkspaceHint() {
+				const suggestion = getWorkspaceSuggestions();
+				if (!suggestion) return null;
+
+				const workspaceIds = workspace.value.map(item => item.id);
+				const missingIngredients = suggestion.ingredients.filter(
+					ing => !workspaceIds.includes(ing) && isIngredientAvailable(ing)
+				);
+
+				const activeEquipmentIds = activeEquipment.value.map(eq => eq.id);
+				const missingEquipment = suggestion.equipment.filter(
+					eq => !activeEquipmentIds.includes(eq)
+				);
+
+				return {
+					target: getElementSymbolById(suggestion.targetCompound),
+					missingIngredients: missingIngredients.map(id => getElementSymbolById(id)),
+					missingEquipment: missingEquipment.map(id => getEquipmentNameById(id))
+				};
 			}
 
 			// Add element to workspace by symbol
@@ -5372,7 +5931,11 @@
 				translateState,
 				translateCategory,
 				dismissNotification,
-				notificationIconClass
+				notificationIconClass,
+                displayWorkspaceHint,
+                getMissionHints,
+                getMissionIngredients,
+                isIngredientAvailable
 			};
 		}
 	}).mount('#app');
