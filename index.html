@@ -3342,9 +3342,6 @@
 			]);
 
 			// Missions
-			// Enhanced missions with detailed guidance
-			// Missions
-// Enhanced missions with detailed guidance and proper material unlocking
 			const missions = ref([
 				{
 					id: 'mission1',
@@ -4290,6 +4287,17 @@
 								'achievement'
 							);
 						}
+
+						// Unlock all missing elements
+						advancedElements.value
+							.forEach(element => {
+								if (!discoveredItems.value.some(i => i.id === element.id)) {
+									discoveredItems.value.push({
+										...element,
+										category: 'element'
+									});
+								}
+							});
 					}
 				}
 			]);
