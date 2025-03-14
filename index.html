@@ -2568,6 +2568,22 @@
 						state: 'liquid'
 					}
 				},
+				{
+					inputs: ['CaF2', 'H2SO4'],
+					requiredEquipment: ['distillation'],
+					output: {
+						id: 'F',
+						symbol: 'F',
+						name: translate({de: 'Fluor', en: 'Fluorine'}),
+						description: translate({
+							de: 'Blass-gelbes Gas, höchst reaktiv, bildet starke Bindungen mit fast allen Elementen.',
+							en: 'Pale yellow gas, highly reactive, forms strong bonds with nearly all elements.'
+						}),
+						category: 'element',
+						color: 'yellow',
+						state: 'gas'
+					}
+				},
 
 				// Halogen chemistry
 				{
@@ -3327,6 +3343,8 @@
 
 			// Missions
 			// Enhanced missions with detailed guidance
+			// Missions
+// Enhanced missions with detailed guidance and proper material unlocking
 			const missions = ref([
 				{
 					id: 'mission1',
@@ -3426,6 +3444,23 @@
 						if (electricityEquipment) {
 							electricityEquipment.disabled = false;
 						}
+
+						// Unlock nitrogen needed for mission 3
+						if (!discoveredItems.value.some(i => i.id === 'N2')) {
+							discoveredItems.value.push({
+								id: 'N2',
+								symbol: 'N₂',
+								name: translate({de: 'Stickstoffgas', en: 'Nitrogen Gas'}),
+								description: translate({
+									de: 'Farb- und geruchloses Gas, Hauptbestandteil der Erdatmosphäre.',
+									en: 'Colorless, odorless gas, main component of Earth\'s atmosphere.'
+								}),
+								category: 'molecule',
+								color: 'green',
+								formula: 'N₂',
+								state: 'gas'
+							});
+						}
 					}
 				},
 				{
@@ -3480,6 +3515,23 @@
 						const uvLightEquipment = availableEquipment.value.find(e => e.id === 'uv_light');
 						if (uvLightEquipment) {
 							uvLightEquipment.disabled = false;
+						}
+
+						// Unlock O2 needed for mission 4
+						if (!discoveredItems.value.some(i => i.id === 'O2')) {
+							discoveredItems.value.push({
+								id: 'O2',
+								symbol: 'O₂',
+								name: translate({de: 'Sauerstoffgas', en: 'Oxygen Gas'}),
+								description: translate({
+									de: 'Notwendig zum Atmen und für Verbrennungsreaktionen.',
+									en: 'Necessary for breathing and combustion reactions.'
+								}),
+								category: 'molecule',
+								color: 'red',
+								formula: 'O₂',
+								state: 'gas'
+							});
 						}
 					}
 				},
@@ -3547,6 +3599,17 @@
 									});
 								}
 							});
+
+						// Ensure Zn and Br are available for missions 5-7
+						['Zn', 'Br'].forEach(elementId => {
+							const element = advancedElements.value.find(e => e.id === elementId);
+							if (element && !discoveredItems.value.some(i => i.id === elementId)) {
+								discoveredItems.value.push({
+									...element,
+									category: 'element'
+								});
+							}
+						});
 					}
 				},
 				{
@@ -3591,6 +3654,35 @@
 						const catalystEquipment = availableEquipment.value.find(e => e.id === 'catalyst');
 						if (catalystEquipment) {
 							catalystEquipment.disabled = false;
+						}
+
+						// Unlock Fluor for halogen mission
+						advancedElements.value
+							.filter(e => ['F'].includes(e.id))
+							.forEach(element => {
+								if (!discoveredItems.value.some(i => i.id === element.id)) {
+									discoveredItems.value.push({
+										...element,
+										category: 'element'
+									});
+								}
+							});
+
+						// Add SiO2 which is needed for mission 6
+						if (!discoveredItems.value.some(i => i.id === 'SiO2')) {
+							discoveredItems.value.push({
+								id: 'SiO2',
+								symbol: 'SiO₂',
+								name: translate({de: 'Siliziumdioxid', en: 'Silicon Dioxide'}),
+								description: translate({
+									de: 'Hauptbestandteil von Sand und Quarz, wird für Glas und Elektronik verwendet.',
+									en: 'Main component of sand and quartz, used for glass and electronics.'
+								}),
+								category: 'compound',
+								color: 'white',
+								formula: 'SiO₂',
+								state: 'solid'
+							});
 						}
 					}
 				},
@@ -3683,7 +3775,55 @@
 					progress: 0,
 					unlockLevel: 7,
 					onComplete: () => {
-						// This mission could unlock specialized equipment or capabilities
+						// This mission unlocks materials needed for organic synthesis
+						const organicMaterials = [
+							{
+								id: 'C2H5OH',
+								symbol: 'C₂H₅OH',
+								name: translate({de: 'Ethanol', en: 'Ethanol'}),
+								description: translate({
+									de: 'Alkohol in alkoholischen Getränken, wird auch als Kraftstoff verwendet.',
+									en: 'Alcohol in alcoholic beverages, also used as fuel.'
+								}),
+								category: 'molecule',
+								color: 'blue',
+								formula: 'C₂H₅OH',
+								state: 'liquid'
+							},
+							{
+								id: 'CH3COOH',
+								symbol: 'CH₃COOH',
+								name: translate({de: 'Essigsäure', en: 'Acetic Acid'}),
+								description: translate({
+									de: 'Organische Säure, Hauptbestandteil von Essig, saurer Geschmack.',
+									en: 'Organic acid, main component of vinegar, sour taste.'
+								}),
+								category: 'molecule',
+								color: 'yellow',
+								formula: 'CH₃COOH',
+								state: 'liquid'
+							},
+							{
+								id: 'C6H12O6',
+								symbol: 'C₆H₁₂O₆',
+								name: translate({de: 'Glukose', en: 'Glucose'}),
+								description: translate({
+									de: 'Einfacher Zucker, wichtige Energiequelle für Lebewesen.',
+									en: 'Simple sugar, important energy source for living organisms.'
+								}),
+								category: 'molecule',
+								color: 'amber',
+								formula: 'C₆H₁₂O₆',
+								state: 'solid'
+							}
+						];
+
+						organicMaterials.forEach(material => {
+							if (!discoveredItems.value.some(i => i.id === material.id)) {
+								discoveredItems.value.push(material);
+							}
+						});
+
 						addNotification(
 							translate({de: 'Neue Fähigkeiten', en: 'New Capabilities'}),
 							translate({
@@ -3735,7 +3875,42 @@
 					progress: 0,
 					unlockLevel: 8,
 					onComplete: () => {
-						// This mission could unlock new organic recipes
+						// Unlock materials needed for industrial processes
+						const industrialMaterials = [
+							{
+								id: 'crude_oil',
+								symbol: '🛢️',
+								name: translate({de: 'Rohöl', en: 'Crude Oil'}),
+								description: translate({
+									de: 'Komplexe Mischung aus verschiedenen Kohlenwasserstoffen, Grundlage für Treibstoffe und Petrochemikalien.',
+									en: 'Complex mixture of various hydrocarbons, basis for fuels and petrochemicals.'
+								}),
+								category: 'mixture',
+								color: 'brown',
+								formula: 'C₁₅H₃₂ + C₈H₁₈ + ...',
+								state: 'liquid'
+							},
+							{
+								id: 'H2',
+								symbol: 'H₂',
+								name: translate({de: 'Wasserstoffgas', en: 'Hydrogen Gas'}),
+								description: translate({
+									de: 'Leichtestes Element, brennbar und potenzieller Kraftstoff.',
+									en: 'Lightest element, flammable and potential fuel.'
+								}),
+								category: 'molecule',
+								color: 'blue',
+								formula: 'H₂',
+								state: 'gas'
+							}
+						];
+
+						industrialMaterials.forEach(material => {
+							if (!discoveredItems.value.some(i => i.id === material.id)) {
+								discoveredItems.value.push(material);
+							}
+						});
+
 						addNotification(
 							translate({de: 'Organische Meisterschaft', en: 'Organic Mastery'}),
 							translate({
@@ -3788,7 +3963,18 @@
 					progress: 0,
 					unlockLevel: 9,
 					onComplete: () => {
-						// Could unlock advanced industrial capabilities
+						// Unlock remaining metals needed for the final mission
+						advancedElements.value
+							.filter(e => ['Sn'].includes(e.id))
+							.forEach(element => {
+								if (!discoveredItems.value.some(i => i.id === element.id)) {
+									discoveredItems.value.push({
+										...element,
+										category: 'element'
+									});
+								}
+							});
+
 						addNotification(
 							translate({de: 'Industrielle Revolution', en: 'Industrial Revolution'}),
 							translate({
@@ -3905,6 +4091,40 @@
 					progress: 0,
 					unlockLevel: 11,
 					onComplete: () => {
+						// Ensure H2SO4 is unlocked for mission 12
+						if (!discoveredItems.value.some(i => i.id === 'H2SO4')) {
+							discoveredItems.value.push({
+								id: 'H2SO4',
+								symbol: 'H₂SO₄',
+								name: translate({de: 'Schwefelsäure', en: 'Sulfuric Acid'}),
+								description: translate({
+									de: 'Starke, korrosive Säure, wichtig in der Industrie.',
+									en: 'Strong, corrosive acid, important in industry.'
+								}),
+								category: 'compound',
+								color: 'yellow',
+								formula: 'H₂SO₄',
+								state: 'liquid'
+							});
+						}
+
+						// Ensure SO2 is unlocked for mission 12
+						if (!discoveredItems.value.some(i => i.id === 'SO2')) {
+							discoveredItems.value.push({
+								id: 'SO2',
+								symbol: 'SO₂',
+								name: translate({de: 'Schwefeldioxid', en: 'Sulfur Dioxide'}),
+								description: translate({
+									de: 'Reizgas, entsteht bei Verbrennung schwefelhaltiger Brennstoffe.',
+									en: 'Irritant gas, produced by burning sulfur-containing fuels.'
+								}),
+								category: 'molecule',
+								color: 'yellow',
+								formula: 'SO₂',
+								state: 'gas'
+							});
+						}
+
 						addNotification(
 							translate({de: 'Säure-Meister', en: 'Acid Master'}),
 							translate({
@@ -3915,7 +4135,6 @@
 						);
 					}
 				},
-
 				{
 					id: 'mission12',
 					title: translate({de: 'Industrielle Revolution', en: 'Industrial Revolution'}),
@@ -3970,6 +4189,23 @@
 					progress: 0,
 					unlockLevel: 12,
 					onComplete: () => {
+						// Ensure C2H4 is unlocked for mission 13
+						if (!discoveredItems.value.some(i => i.id === 'C2H4')) {
+							discoveredItems.value.push({
+								id: 'C2H4',
+								symbol: 'C₂H₄',
+								name: translate({de: 'Ethylen', en: 'Ethylene'}),
+								description: translate({
+									de: 'Einfachster ungesättigter Kohlenwasserstoff, wichtig für die Kunststoffherstellung.',
+									en: 'Simplest unsaturated hydrocarbon, important for plastic production.'
+								}),
+								category: 'molecule',
+								color: 'indigo',
+								formula: 'C₂H₄',
+								state: 'gas'
+							});
+						}
+
 						addNotification(
 							translate({de: 'Industrieexperte', en: 'Industry Expert'}),
 							translate({
@@ -4040,6 +4276,20 @@
 							}),
 							'info'
 						);
+
+						// Add final achievement
+						const masterAchievement = achievements.value.find(a => a.id === 'achievement10');
+						if (masterAchievement && !masterAchievement.unlocked) {
+							masterAchievement.unlocked = true;
+							addNotification(
+								translate({de: 'Der ultimative Chemiker', en: 'The Ultimate Chemist'}),
+								translate({
+									de: 'Du hast alle Geheimnisse der Chemie gemeistert!',
+									en: 'You have mastered all the secrets of chemistry!'
+								}),
+								'achievement'
+							);
+						}
 					}
 				}
 			]);
@@ -4237,7 +4487,18 @@
 			}
 
 			// Check mission completion
-			function checkMissions() {
+			function checkMissions(runCompletionCode) {
+				if (runCompletionCode) {
+					// When the mission is completed, ensure, that the complete-script is executed
+					missions.value.forEach(mission => {
+						if (mission.completed) {
+							if (mission.onComplete && typeof mission.onComplete === 'function') {
+								mission.onComplete();
+							}
+						}
+					});
+                }
+
 				missions.value.forEach(mission => {
 					if (!mission.completed) {
 						// Calculate progress based on current discoveries
@@ -5812,7 +6073,7 @@
 				setupAutosave();
 
 				// Check if missions are completed
-				checkMissions();
+				checkMissions(true);
 
 				// Check if achievements are unlocked
 				checkAchievements();
